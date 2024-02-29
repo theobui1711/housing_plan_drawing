@@ -67,9 +67,9 @@ class LayoutDataset(data.Dataset):
                 init_contour_data_path = os.path.join(self.data_dir, "EvaluatorData/layers_hull_data/layers_init_contour_%d.npy" % int(self.id[i]))
                 indicator_data_path = os.path.join(self.data_dir, "EvaluatorData/layers_hull_data/layers_indicator_values_%d.npy" % int(self.id[i]))
                 contour_type_path = os.path.join(self.data_dir, "OriginData/layout_gt_coord_type/layout%d_boxes_type.txt" % int(self.id[i]))
-                self.layers_data = np.load(layers_data_path)
+                self.layers_data = np.load(layers_data_path, allow_pickle=True)
                 self.contour_type = np.loadtxt(contour_type_path)
-                self.contour = np.load(contour_data_path)
+                self.contour = np.load(contour_data_path, allow_pickle=True)
                 self.init_contour = np.load(init_contour_data_path)
                 self.indicator_values = np.load(indicator_data_path)
                 room_data1_tensors, room_data2_tensors, init_contours_tensors,\
