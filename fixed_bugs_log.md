@@ -53,12 +53,26 @@ plt.plot(self.testing_epoch, [error.cpu().detach().numpy() for error in self.tes
          linewidth=1, label="testing")
 ```
 
-
 # B. Layout generation
 
 1. ValueError: Object arrays cannot be loaded when allow_pickle=False
-In `datasets.py` file, line `70, 72`:
+   In `datasets.py` file, line `70, 72`:
 
 ```python
 self.layers_data = np.load(layers_data_path, allow_pickle=True)
+```
+
+2. cuda error
+   In `trainer_evaluator.py` file, line `270`:
+
+```python
+plt.plot(testing_epoch, [error.cpu() for error in testing_error], color="b", linestyle="-", linewidth=1,
+         label="testing")
+```
+
+3. best_loss is always 0
+   In `trainer_evaluator.py` file:
+
+```python
+if test_total_err < self.best_loss and step == len(self.dataloader_test) - 1:
 ```
