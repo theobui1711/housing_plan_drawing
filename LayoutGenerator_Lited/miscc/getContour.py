@@ -492,14 +492,16 @@ class ConversionLayout(object):
         first_contour_random_point = check_contour_hull(first_contour_random_point)
         # /***** new generate second contour layout by shapely *****/
         from shapely.ops import split
-        from shapely.geometry import Polygon, LineString
+        from shapely.geometry import Polygon, LineString, GeometryCollection
         intersection_box_point = self.delete_redundancy_element(intersection_box_point)
         intersection_box_point = np.round(intersection_box_point)
         # if len(intersection_box_point) != 3:
         #     print("error happen! please check the intersection box point")
         line = LineString([intersection_box_point[0], intersection_box_point[-1], intersection_box_point[1]])
         contour_polygon = Polygon(contour_coord)
-        contour_collection = list(split(contour_polygon, line))
+        geometry_collection = split(contour_polygon, line)
+        contour_collection = [geometry for geometry in geometry_collection.geoms]
+
         if len(contour_collection) > 1:
             second_contour_random_point = np.array(contour_collection[0].exterior.coords).astype(np.int32)
             first_contour_random_point = np.array(contour_collection[1].exterior.coords).astype(np.int32)
@@ -539,9 +541,9 @@ class ConversionLayout(object):
                 point_set[2 * i + 1] = [x2 * 256, y2 * 256]
             # bounding_box: (x, y, w, h)
             bounding_box = cv.boundingRect(point_set)
-            bounding_box = np.array([bounding_box[0], bounding_box[1], bounding_box[2], bounding_box[3]], dtype=np.int)
+            bounding_box = np.array([bounding_box[0], bounding_box[1], bounding_box[2], bounding_box[3]], dtype=np.int32)
             if contour:
-                point_set = np.unique(point_set, axis=0).astype(np.int)
+                point_set = np.unique(point_set, axis=0).astype(np.int32)
                 hull = cv.convexHull(point_set, returnPoints=False)
                 point_hull = point_set[hull]
                 point_hull = np.squeeze(point_hull)
@@ -552,7 +554,7 @@ class ConversionLayout(object):
         else:
             # bounding_box: (x, y, w, h)
             bounding_box = cv.boundingRect(boxes_coord)
-            bounding_box = np.array([bounding_box[0], bounding_box[1], bounding_box[2], bounding_box[3]], dtype=np.int)
+            bounding_box = np.array([bounding_box[0], bounding_box[1], bounding_box[2], bounding_box[3]], dtype=np.int32)
             if contour:
                 point_hull = boxes_coord
             else:
@@ -576,7 +578,7 @@ class ConversionLayout(object):
             def calculate_surface_area(polygon):
                 # use the image to calculate the area
                 im = np.zeros((256, 256))
-                polygon_mask = cv.fillPoly(im, [np.array(polygon, dtype=np.int)], 255)
+                polygon_mask = cv.fillPoly(im, [np.array(polygon, dtype=np.int32)], 255)
                 area = np.sum(np.greater(polygon_mask, 0))
                 return area
             k_min, area_limitation = 1. / (2* room_num), 50

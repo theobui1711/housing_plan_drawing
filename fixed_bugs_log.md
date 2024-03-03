@@ -59,7 +59,7 @@ plt.plot(self.testing_epoch, [error.cpu().detach().numpy() for error in self.tes
    In `datasets.py` file, line `70, 72`:
 
 ```python
-self.layers_data = np.load(layers_data_path, allow_pickle=True)
+... = np.load(..., allow_pickle=True)
 ```
 
 2. cuda error
@@ -75,4 +75,27 @@ plt.plot(testing_epoch, [error.cpu() for error in testing_error], color="b", lin
 
 ```python
 if test_total_err < self.best_loss and step == len(self.dataloader_test) - 1:
+```
+
+4. ValueError: setting an array element with a sequence. The requested array has an inhomogeneous shape after 1
+   dimensions. The detected shape was (7,) + inhomogeneous part.
+   In `trainer_evaluator.py` file:
+
+```python
+new_hull = np.array(new_hull, dtype=object)
+```
+
+5. TypeError: 'GeometryCollection' object is not iterable
+
+```python
+from shapely.geometry import GeometryCollection
+
+geometry_collection = split(contour_polygon, line)
+contour_collection = [geometry for geometry in geometry_collection.geoms]
+```
+
+6. numpy error
+
+```python
+bounding_box = np.array([bounding_box[0], bounding_box[1], bounding_box[2], bounding_box[3]], dtype=np.int32)
 ```

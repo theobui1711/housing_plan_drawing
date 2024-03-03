@@ -94,7 +94,7 @@ class evaluateMetric(object):
     def calculate_surface_area(polygon):
         # use the image to calculate the area
         im = np.zeros((256, 256))
-        polygon_mask = cv.fillPoly(im, [np.array(polygon, dtype=np.int)], 255)
+        polygon_mask = cv.fillPoly(im, [np.array(polygon, dtype=np.int32)], 255)
         area = np.sum(np.greater(polygon_mask, 0))
         return area
 
@@ -379,7 +379,7 @@ class LayGenerator(object):
                 if refine_hull != -1:
                     refine_hulls.append(refine_hull)
                     refine_sum_hulls.append(refine_hull)
-                    init_sum_contour.append(np.array(init_contour[0][0][:, :2]*255, dtype=np.int))  
+                    init_sum_contour.append(np.array(init_contour[0][0][:, :2]*255, dtype=np.int32))
                     num = num + 1
                 if not eval_metric:
                     if num == max_num:

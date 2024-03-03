@@ -132,7 +132,9 @@ def room_size_range_hull(contour_hull, hull_type, range_type):
     hull_index = hull_index[::-1]
     for i in range(len(hull_index)):
         new_hull.append(contour_hull[hull_index[i]])
-    new_hull = np.array(new_hull)
+
+    new_hull = np.array(new_hull, dtype=object)
+
     # # type range
     new_type, new_type_index = [], []
     for i in range(len(hull_type)):
