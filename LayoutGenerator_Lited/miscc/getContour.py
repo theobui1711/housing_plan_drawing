@@ -62,6 +62,7 @@ def check_contour_hull(point_hull):
     point_hull: [[x,y], ...]
     return: continual point_hull
     """
+
     def judge_contour_hull(point_hull):
         # function: 0 to judge the contour hull is not ok
         same_num = 0
@@ -70,11 +71,12 @@ def check_contour_hull(point_hull):
                 if point_hull[i][0] == point_hull[0][0] or point_hull[i][1] == point_hull[0][1]:
                     same_num = same_num + 1
             elif point_hull[i][0] == point_hull[i + 1][0] or point_hull[i][1] == point_hull[i + 1][1]:
-                    same_num = same_num + 1
+                same_num = same_num + 1
         if same_num == point_hull.shape[0]:
             return False
         else:
             return True
+
     last_type = "decide which is the same"
     while judge_contour_hull(point_hull):
         # change the first point_hull since:array([[191,  60],
@@ -82,7 +84,7 @@ def check_contour_hull(point_hull):
         #        [105,  49], [106,  49]], dtype=int32) will make the algorithm lose influence
         for i in range(point_hull.shape[0]):
             compare = i + 1
-            if i+1 == point_hull.shape[0]:
+            if i + 1 == point_hull.shape[0]:
                 compare = 0
             if point_hull[i][0] == point_hull[compare][0]:
                 last_type = "x_same"
@@ -131,8 +133,8 @@ def point_split_scale(contour_coord, bounding_box):
     """
     x, y, w, h = bounding_box[0]
     point_coords = []
-    for i in range(x, x+w, 2):
-        for j in range(y, y+h):
+    for i in range(x, x + w, 2):
+        for j in range(y, y + h):
             # +1:inside the contour
             if cv.pointPolygonTest(contour_coord, (i, j), False) == +1:
                 point_coords.append([i, j])
@@ -157,17 +159,17 @@ def get_line_intersection(line1, line2, cross_point):
     s10_y = p1_y - p0_y
     s32_x = p3_x - p2_x
     s32_y = p3_y - p2_y
-    de_norm = s10_x * s32_y - s32_x * s10_y # a X b
+    de_norm = s10_x * s32_y - s32_x * s10_y  # a X b
     if de_norm == 0:  # Parallel or collinear if cross = 0
         return 0
     de_norm_positive = de_norm > 0
     s02_x = p0_x - p2_x
     s02_y = p0_y - p2_y
-    s_numer = s10_x * s02_y - s10_y * s02_x # a X (a1 - b1)
+    s_numer = s10_x * s02_y - s10_y * s02_x  # a X (a1 - b1)
     if s_numer != 0 and (s_numer < 0) == de_norm_positive:  # a X (a1 - b1) same sign with a X b
         return 0
     t_numer = s32_x * s02_y - s32_y * s02_x  # b X (a1 - b1)
-    if t_numer !=0 and (t_numer < 0) == de_norm_positive:
+    if t_numer != 0 and (t_numer < 0) == de_norm_positive:
         return 0
     if np.fabs(s_numer) > np.fabs(de_norm) or np.fabs(t_numer) > np.fabs(de_norm):
         return 0
@@ -175,6 +177,7 @@ def get_line_intersection(line1, line2, cross_point):
     cross_point[0] = p0_x + (t * s10_x)
     cross_point[1] = p0_y + (t * s10_y)
     return 1
+
 
 def check_intersection_polygon(intersection_point, contour_coord, direction, num=1):
     """
@@ -187,7 +190,7 @@ def check_intersection_polygon(intersection_point, contour_coord, direction, num
     """
     bounding_box_point, same_y_point, same_x_point, same_x_index, same_y_index, delete_point = \
         intersection_point[-1], [], [], [], [], []
-    for i in range(len(intersection_point)-1):
+    for i in range(len(intersection_point) - 1):
         if intersection_point[i][1] == bounding_box_point[1]:
             same_y_point.append(intersection_point[i][0])
             same_y_index.append(i)
@@ -205,8 +208,8 @@ def check_intersection_polygon(intersection_point, contour_coord, direction, num
     same_y_point, same_y_index = zip(*zip_y)
     # judge the farthest point is in the contour or not
     [x, y, w, h] = cv.boundingRect(np.array(intersection_point).astype(np.float32))
-    x, y, w, h = bounding_box_point[0], bounding_box_point[1], w-1, h-1
-    point_dict = {0: [x-w, y-h], 1:[x+w, y-h], 2:[x-w, y+h], 3:[x+w, y+h]}
+    x, y, w, h = bounding_box_point[0], bounding_box_point[1], w - 1, h - 1
+    point_dict = {0: [x - w, y - h], 1: [x + w, y - h], 2: [x - w, y + h], 3: [x + w, y + h]}
     # first contour have the point1 then the second contour should delete the point1
     if cv.pointPolygonTest(contour_coord, (point_dict[direction][0], point_dict[direction][1]), False) != -1:
         # in the contour
@@ -280,11 +283,13 @@ def check_intersection_polygon(intersection_point, contour_coord, direction, num
         remove_index = []
         delete_point = np.array(delete_point).astype(np.float32)
         for i in range(len(delete_point)):
-            if cv.pointPolygonTest(np.array(intersection_point).astype(np.float32), (delete_point[i][0], delete_point[i][1]), False) == -1:
-            # outside the points
+            if cv.pointPolygonTest(np.array(intersection_point).astype(np.float32),
+                                   (delete_point[i][0], delete_point[i][1]), False) == -1:
+                # outside the points
                 remove_index.append(i)
         delete_point = np.delete(np.array(delete_point), remove_index, axis=0)
     return intersection_point, delete_point
+
 
 def get_intersection_polygon(bounding_box_point, contour_coord, direction, num=1):
     """
@@ -297,7 +302,7 @@ def get_intersection_polygon(bounding_box_point, contour_coord, direction, num=1
     intersection_box_point, intersection_index, delete_point = [], [], None
     rest_contour_coord = contour_coord.copy()
     for i in range(len(contour_coord)):
-        if i + 1 == len(contour_coord): # the last coord next point should be the first
+        if i + 1 == len(contour_coord):  # the last coord next point should be the first
             contour_line = [contour_coord[i], contour_coord[0]]
         else:
             contour_line = [contour_coord[i], contour_coord[i + 1]]
@@ -315,7 +320,8 @@ def get_intersection_polygon(bounding_box_point, contour_coord, direction, num=1
                                         intersection_box_point[inter_index_arg[i]][1]], 0)
     intersection_box_point.append(bounding_box_point[2])
     if len(intersection_box_point) > 3:
-        intersection_box_point, delete_point = check_intersection_polygon(intersection_box_point, contour_coord, direction, num)
+        intersection_box_point, delete_point = check_intersection_polygon(intersection_box_point, contour_coord,
+                                                                          direction, num)
         if intersection_box_point is None:
             return None, None, None
     return intersection_box_point, rest_contour_coord, delete_point
@@ -362,6 +368,7 @@ def clock_wise(point_hull):
                 return 1
             else:
                 return -1
+
     center_point = get_center_point(point_hull)
     clockwise_sort = clockwise_two_point(center_point)
     point_hull = sorted(point_hull, key=functools.cmp_to_key(clockwise_sort.compare))
@@ -386,10 +393,13 @@ def get_room_contour(hull_conversion, boxes_coord, pair_id=1):
         point_coords = point_split_scale(contour_coord, bounding_box)
         while len(point_coords) < 20:
             point_coords = point_split_scale(contour_coord, bounding_box)
-        random_room_contour, rest_contour, pair_point = hull_conversion.random_room_generate(point_coords, contour_coord, seed=pair_id*4+i)
+        random_room_contour, rest_contour, pair_point = hull_conversion.random_room_generate(point_coords,
+                                                                                             contour_coord,
+                                                                                             seed=pair_id * 4 + i)
         pair_points.append(pair_point)
         # random the room point hull
-        room_point_hull, room_bounding_box = hull_conversion.get_contour_layout(random_room_contour, first=False, contour=False)
+        room_point_hull, room_bounding_box = hull_conversion.get_contour_layout(random_room_contour, first=False,
+                                                                                contour=False)
         room_coords.append(room_point_hull)
         room_bounding_boxes.append(room_bounding_box)
         contour_coord, _ = hull_conversion.get_contour_layout(rest_contour, first=False, contour=True)
@@ -541,7 +551,8 @@ class ConversionLayout(object):
                 point_set[2 * i + 1] = [x2 * 256, y2 * 256]
             # bounding_box: (x, y, w, h)
             bounding_box = cv.boundingRect(point_set)
-            bounding_box = np.array([bounding_box[0], bounding_box[1], bounding_box[2], bounding_box[3]], dtype=np.int32)
+            bounding_box = np.array([bounding_box[0], bounding_box[1], bounding_box[2], bounding_box[3]],
+                                    dtype=np.int32)
             if contour:
                 point_set = np.unique(point_set, axis=0).astype(np.int32)
                 hull = cv.convexHull(point_set, returnPoints=False)
@@ -554,7 +565,8 @@ class ConversionLayout(object):
         else:
             # bounding_box: (x, y, w, h)
             bounding_box = cv.boundingRect(boxes_coord)
-            bounding_box = np.array([bounding_box[0], bounding_box[1], bounding_box[2], bounding_box[3]], dtype=np.int32)
+            bounding_box = np.array([bounding_box[0], bounding_box[1], bounding_box[2], bounding_box[3]],
+                                    dtype=np.int32)
             if contour:
                 point_hull = boxes_coord
             else:
@@ -571,23 +583,27 @@ class ConversionLayout(object):
         layout: [num, (x,y,direction)]
         return:
         '''
+
         def judge_area(room_num, room_hull, init_contour):
             """
             function:calculate the score_area of the room
             """
+
             def calculate_surface_area(polygon):
                 # use the image to calculate the area
                 im = np.zeros((256, 256))
                 polygon_mask = cv.fillPoly(im, [np.array(polygon, dtype=np.int32)], 255)
                 area = np.sum(np.greater(polygon_mask, 0))
                 return area
-            k_min, area_limitation = 1. / (2* room_num), 50
+
+            k_min, area_limitation = 1. / (2 * room_num), 50
             area = float(calculate_surface_area(room_hull))
             total_area = float(calculate_surface_area(init_contour))
             k = total_area / area
             # print("area_ratio: ", k)
             if k > area_limitation:
                 return False
+
         room_num = len(layout)
         room_coords = []
         contour_coord = None
@@ -597,18 +613,19 @@ class ConversionLayout(object):
             random_point = [int(layout[i][0] * 255), int(layout[i][1] * 255), int(layout[i][2] * 4)]
             data = self.random_room_generate(contour_coord, random_point)
             if data is not None:
-                [random_room_contour, rest_contour, pair_point] =data
+                [random_room_contour, rest_contour, pair_point] = data
             else:
                 return -1
             # print(random_room_contour)
             # random the room point hull
-            room_point_hull, room_bounding_box = self.get_contour_layout(random_room_contour, first=False, contour=False)
+            room_point_hull, room_bounding_box = self.get_contour_layout(random_room_contour, first=False,
+                                                                         contour=False)
             room_coords.append(room_point_hull)
             # make the rest_contour be in clockwise
             contour_coord, _ = self.get_contour_layout(rest_contour, first=False, contour=True)
         room_coords.append(contour_coord)
         for i in range(len(room_coords)):
-            k = judge_area(len(room_coords), room_coords[i], layout_init_contour*255)
+            k = judge_area(len(room_coords), room_coords[i], layout_init_contour * 255)
             if k == False:
                 return -1
         return room_coords
@@ -641,4 +658,4 @@ if __name__ == '__main__':
         np.save(save_hull_data_path, layer_pair_hulls)
         print("save {} layout is OK!".format(i))
     end_time = time.time()
-    print("The total time spent %.4f s" % (end_time-start_time))
+    print("The total time spent %.4f s" % (end_time - start_time))

@@ -143,3 +143,5 @@ dmypy.json
 */data/
 */tmp/
 */results/
+MultiLayerDataset/
+LayoutGenerator_Lited/MultiLayerDataset/

@@ -52,7 +52,7 @@ if __name__ == "__main__":
     if cfg.TRAIN.FLAG:
         now = datetime.datetime.now(dateutil.tz.tzlocal())
         timestamp = now.strftime('%Y_%m_%d_%H_%M_%S')
-        output_dir = '../output_bbox_gcn/%s_%s_%s' % \
+        output_dir = 'output_bbox_gcn/%s_%s_%s' % \
             (cfg.DATASET_NAME, cfg.CONFIG_NAME, timestamp)
     else:
         output_dir = '{}'.format(cfg.EVAL.OUTPUT_DIR)

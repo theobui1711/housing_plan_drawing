@@ -1,11 +1,13 @@
-import os 
+import os
 import sys
 import open3d
 import numpy as np
 import cv2 as cv
 from miscc.getContour import check_contour_hull, visualization
+
 dir_path = (os.path.abspath(os.path.join(os.path.realpath(__file__), '../..')))
 sys.path.append(dir_path)
+
 
 def get_center_point(point_hull):
     """
@@ -34,9 +36,10 @@ def generate_triangle(triangle_index, point_hull, shift_index=0):
     # point_position:[0, 2, 3, 1]-->[[3, 1], generate_triangle:[[0, 2, 3],
     #                                [2, 0]]                    [0, 3, 1]]
     if point_hull is None:
-        triangle = np.zeros((len(triangle_index)-2, 3))
+        triangle = np.zeros((len(triangle_index) - 2, 3))
         for i in range(triangle.shape[0]):
-            triangle[i] = [triangle_index[0]+shift_index, triangle_index[i+1]+shift_index, triangle_index[i+2]+shift_index]
+            triangle[i] = [triangle_index[0] + shift_index, triangle_index[i + 1] + shift_index,
+                           triangle_index[i + 2] + shift_index]
     else:
         triangle = np.zeros((len(triangle_index) - 2, 3))
         for i in range(triangle.shape[0]):
@@ -64,32 +67,34 @@ def clockwise(index):
 def generate_line_set(point_hull, bottom_height, height, max_size):
     point_num = np.array(point_hull).shape[0]
     # generate every line link
-    vertical_link_1,vertical_link_2 = np.zeros((point_num, 3)), np.zeros((point_num, 3))
+    vertical_link_1, vertical_link_2 = np.zeros((point_num, 3)), np.zeros((point_num, 3))
     # downside_link = np.zeros((point_num, 3))
     upside_link_1, upside_link_2 = np.zeros((point_num, 3)), np.zeros((point_num, 3))
     upside_back_link_1 = np.zeros((point_num, 3))
     contour_3d_hull_1, contour_3d_hull_2 = np.zeros((point_num * 3, 3)), np.zeros((point_num * 3, 3))
     for i in range(point_num):
         point = point_hull[i]
-        contour_3d_hull_1[3 * i] = [point[0] / max_size, point[1] / max_size, bottom_height/max_size]
+        contour_3d_hull_1[3 * i] = [point[0] / max_size, point[1] / max_size, bottom_height / max_size]
         contour_3d_hull_1[3 * i + 1] = [point[0] / max_size, point[1] / max_size, height / max_size]
-        contour_3d_hull_1[3 * i + 2] = [point[0] / max_size+0.002, point[1] / max_size+0.002, height / max_size]
-        vertical_link_1[i] = [3*i, 3*i+1, 3*i+2]
-        upside_link_1[i] = [3*i+1, 3*i+2, (3*i+4) % (point_num*3)]
-        upside_back_link_1[i] = [(3*i+4)% (point_num*3), (3*i+5)% (point_num*3), 3*i+2]
+        contour_3d_hull_1[3 * i + 2] = [point[0] / max_size + 0.002, point[1] / max_size + 0.002, height / max_size]
+        vertical_link_1[i] = [3 * i, 3 * i + 1, 3 * i + 2]
+        upside_link_1[i] = [3 * i + 1, 3 * i + 2, (3 * i + 4) % (point_num * 3)]
+        upside_back_link_1[i] = [(3 * i + 4) % (point_num * 3), (3 * i + 5) % (point_num * 3), 3 * i + 2]
     for i in range(point_num):
         point = point_hull[i]
-        contour_3d_hull_2[3 * i] = [point[0] / max_size, point[1] / max_size, bottom_height/max_size]
-        contour_3d_hull_2[3 * i + 1] = [point[0] / max_size+0.002, point[1] / max_size+0.002, bottom_height / max_size]
+        contour_3d_hull_2[3 * i] = [point[0] / max_size, point[1] / max_size, bottom_height / max_size]
+        contour_3d_hull_2[3 * i + 1] = [point[0] / max_size + 0.002, point[1] / max_size + 0.002,
+                                        bottom_height / max_size]
         contour_3d_hull_2[3 * i + 2] = [point[0] / max_size, point[1] / max_size, height / max_size]
-        vertical_link_2[i] = [3*i, 3*i+1, 3*i+2]
-        upside_link_2[i] = [3*i, 3*i+1, (3*i+3) % (point_num*3)]
+        vertical_link_2[i] = [3 * i, 3 * i + 1, 3 * i + 2]
+        upside_link_2[i] = [3 * i, 3 * i + 1, (3 * i + 3) % (point_num * 3)]
     lines_link_1 = np.vstack((vertical_link_1, upside_link_1))
-    lines_link_2 = np.vstack((vertical_link_2+contour_3d_hull_1.shape[0], upside_link_2+contour_3d_hull_2.shape[0]))
+    lines_link_2 = np.vstack((vertical_link_2 + contour_3d_hull_1.shape[0], upside_link_2 + contour_3d_hull_2.shape[0]))
     lines_link = np.vstack((lines_link_1, lines_link_2))
     lines_link = np.vstack((lines_link, upside_back_link_1))
     lines_vertices = np.vstack((contour_3d_hull_1, contour_3d_hull_2))
     return lines_vertices, lines_link
+
 
 def generate_3d_contour(point_hull, height, bottom_height, shift_triangle_index, max_size, surface_type):
     """
@@ -101,7 +106,7 @@ def generate_3d_contour(point_hull, height, bottom_height, shift_triangle_index,
     contour_3d_hull = np.zeros((point_num * 2, 3))
     for i in range(point_num):
         point = point_hull[i]
-        contour_3d_hull[2 * i] = [point[0] / max_size, point[1] / max_size, bottom_height/max_size]
+        contour_3d_hull[2 * i] = [point[0] / max_size, point[1] / max_size, bottom_height / max_size]
         contour_3d_hull[2 * i + 1] = [point[0] / max_size, point[1] / max_size, height / max_size]
     # generate every surface triangle
     triangle_index = [i for i in range(contour_3d_hull.shape[0])]
@@ -135,7 +140,8 @@ def corrected_coord(point_hull, max_size):
     return corrected_point_hull
 
 
-def generate_wall(point_hull, shift_triangle_index, bottom_height, height, contour_point_hull, wall_thickness=3, max_size=256):
+def generate_wall(point_hull, shift_triangle_index, bottom_height, height, contour_point_hull, wall_thickness=3,
+                  max_size=256):
     """
     function: trans the surface to the wall have thickness; split to 4 points to represent a plane
     condition: point_hull in 2D pic: hull.png follow clock_wise
@@ -146,10 +152,10 @@ def generate_wall(point_hull, shift_triangle_index, bottom_height, height, conto
     # generate the 2D wall_point_hull
     for i in range(point_num):
         point = point_hull[i]
-        if i+1 == point_num:
+        if i + 1 == point_num:
             adjacent_point = point_hull[0]
         else:
-            adjacent_point = point_hull[i+1]
+            adjacent_point = point_hull[i + 1]
         wall_point_hull[i][0] = [point[0], point[1]]
         wall_point_hull[i][1] = [adjacent_point[0], adjacent_point[1]]
         wall_line = [wall_point_hull[i][0], wall_point_hull[i][1]]
@@ -171,7 +177,8 @@ def generate_wall(point_hull, shift_triangle_index, bottom_height, height, conto
     wall_3d_hulls = None
     wall_3d_triangles = None
     for i in range(len(wall_point_hull)):
-        wall_3d_hull, wall_3d_triangle = generate_3d_contour(wall_point_hull[i], height, bottom_height, shift_triangle_index, max_size, "upside")
+        wall_3d_hull, wall_3d_triangle = generate_3d_contour(wall_point_hull[i], height, bottom_height,
+                                                             shift_triangle_index, max_size, "upside")
         if i == 0:
             wall_3d_hulls = wall_3d_hull
             wall_3d_triangles = wall_3d_triangle
@@ -186,18 +193,19 @@ def line_is_on_contour(line, point_hull):
     valid_line = (line[0] - line[1]).astype(int)
     for i in range(len(point_hull)):
         start_point = point_hull[i]
-        if i+1 == len(point_hull):
+        if i + 1 == len(point_hull):
             end_point = point_hull[0]
         else:
-            end_point = point_hull[i+1]
+            end_point = point_hull[i + 1]
         contour_line = (end_point - start_point).astype(int)
         on_line = (start_point - line[0]).astype(int)
         # on line or on extension line; cv.pointPolygonTest:+1(inside);-1(outside);0(on the edge)
         if np.cross(valid_line, contour_line) == 0 and np.cross(valid_line, on_line) == 0:
-            if cv.pointPolygonTest(point_hull, (line[0][0], line[0][1]), False) == 0\
-            and cv.pointPolygonTest(point_hull, (line[1][0], line[1][1]), False) == 0:
+            if cv.pointPolygonTest(point_hull, (line[0][0], line[0][1]), False) == 0 \
+                    and cv.pointPolygonTest(point_hull, (line[1][0], line[1][1]), False) == 0:
                 return True
     return False
+
 
 def get_contour(hull):
     new_hull = []
@@ -210,9 +218,10 @@ def get_contour(hull):
     contour_hull = check_contour_hull(contour_hull)
     return contour_hull
 
+
 def render_3d_contour(init_hull, first_hull, Next_hull, save_mesh_path):
     height_scale = 40  # layout height 28  40 4layers:30
-    max_size, wall_thick = 256, 1 
+    max_size, wall_thick = 256, 1
     Color = np.array([[84, 139, 84], [0, 100, 0], [0, 0, 128], [85, 26, 139], [255, 0, 255],
                       [165, 42, 42], [139, 134, 130], [205, 198, 115], [139, 58, 58],
                       [255, 255, 255], [0, 0, 0], [30, 144, 255], [135, 206, 235], [255, 255, 0]])
@@ -221,23 +230,25 @@ def render_3d_contour(init_hull, first_hull, Next_hull, save_mesh_path):
     point_3d_hulls = []
     point_3d_hulls.append(first_hull)
     for i in range(len(Next_hull)):
-        point_3d_hulls.append(Next_hull[i]) # 1
+        point_3d_hulls.append(Next_hull[i])  # 1
     layout_layer = len(point_3d_hulls)
     for l in range(layout_layer):
         bottom_height = height_scale * l
-        height = height_scale * (l+1)
+        height = height_scale * (l + 1)
         # 1. generate the Bottom layer face layout
         Bottom_layout = open3d.geometry.TriangleMesh()
         contour_point_hull = get_contour(point_3d_hulls[l])
         for h in range(len(point_3d_hulls[l])):
-            Bottom_3d_hulls, Bottom_3d_triangle = generate_3d_contour(point_3d_hulls[0][h],  bottom_height+1, bottom_height, 0, max_size, "Both")
+            Bottom_3d_hulls, Bottom_3d_triangle = generate_3d_contour(point_3d_hulls[0][h], bottom_height + 1,
+                                                                      bottom_height, 0, max_size, "Both")
             Bottom_layout.vertices = open3d.utility.Vector3dVector(Bottom_3d_hulls)
             Bottom_layout.triangles = open3d.utility.Vector3iVector(Bottom_3d_triangle)
             layouts = layouts + Bottom_layout
         # 2. generate the 3D layout wall
         for n in range(len(point_3d_hulls[l])):
             point_hull = np.squeeze(point_3d_hulls[l][n]).astype(int)
-            wall_hulls, wall_triangles = generate_wall(point_hull, 0, bottom_height, height, contour_point_hull, wall_thickness=wall_thick)
+            wall_hulls, wall_triangles = generate_wall(point_hull, 0, bottom_height, height, contour_point_hull,
+                                                       wall_thickness=wall_thick)
             wall = open3d.geometry.TriangleMesh()
             if wall_hulls is not None:
                 wall.vertices = open3d.utility.Vector3dVector(wall_hulls)
@@ -250,13 +261,13 @@ def render_3d_contour(init_hull, first_hull, Next_hull, save_mesh_path):
     layout_lines.paint_uniform_color([0, 0, 0])
     # save 
     axis_pcd = open3d.geometry.TriangleMesh.create_coordinate_frame(size=0.5, origin=[0, 0, 0])
-    layouts = layouts #+ axis_pcd
+    layouts = layouts  # + axis_pcd
     layouts = layouts.remove_duplicated_vertices()
     layouts = layouts.remove_duplicated_triangles()
     layouts = layouts.compute_vertex_normals()
     layouts = layouts.compute_triangle_normals()
     print("hello")
-    open3d.io.write_triangle_mesh(save_mesh_path, layouts+layout_lines)
+    open3d.io.write_triangle_mesh(save_mesh_path, layouts + layout_lines)
     # open3d.visualization.draw_geometries([layouts]+lines, mesh_show_back_face=True)
 
 
@@ -281,12 +292,14 @@ if __name__ == "__main__":
         init_hull = np.load(init_hull_path)
         # return first_hull, second_hull, init_hull
         return first_hull, w_all_hull, init_hull
+
+
     data_dir = "supp_visual/visual_4"
     # save_name = "visual_w_all_whole.ply"
     # data_dir = "cover_visual"
     # save_name = "cover_good_whole.ply"
     height_scale = 30  # layout height 28  40 4layers:30
-    max_size = 256 # 256 --> 1
+    max_size = 256  # 256 --> 1
     wall_thick = 1
     # for cover
     # first_hull, second_hull, init_hull = load_data_path()
@@ -294,11 +307,7 @@ if __name__ == "__main__":
     # visualization([init_hull], "./contour.png")
     # assert False
     first_hull, w_all_hull, init_hull = load_data_path()
-    point_3d_hulls = []
-    point_3d_hulls.append(first_hull)
-    point_3d_hulls.append(w_all_hull[2]) # 1
-    point_3d_hulls.append(w_all_hull[6]) # 3
-    point_3d_hulls.append(w_all_hull[3])
+    point_3d_hulls = [first_hull, w_all_hull[2], w_all_hull[6], w_all_hull[3]]
 
     # point_3d_hulls.append(second_hull[5])
     # point_3d_hulls.append(second_hull[4])
@@ -317,19 +326,21 @@ if __name__ == "__main__":
     lines = []
     for l in range(layout_layer):
         bottom_height = height_scale * l
-        height = height_scale * (l+1)
+        height = height_scale * (l + 1)
         # 1. generate the Bottom layer face layout
         Bottom_layout = open3d.geometry.TriangleMesh()
         contour_point_hull = get_contour(point_3d_hulls[l])
         ### for some special process
         if l == 1:
-            for h in range(len(point_3d_hulls[l+1])):
-                Bottom_3d_hulls, Bottom_3d_triangle = generate_3d_contour(point_3d_hulls[l+1][h],  bottom_height+1, bottom_height, 0, max_size, "Both")
+            for h in range(len(point_3d_hulls[l + 1])):
+                Bottom_3d_hulls, Bottom_3d_triangle = generate_3d_contour(point_3d_hulls[l + 1][h], bottom_height + 1,
+                                                                          bottom_height, 0, max_size, "Both")
                 Bottom_layout.vertices = open3d.utility.Vector3dVector(Bottom_3d_hulls)
                 Bottom_layout.triangles = open3d.utility.Vector3iVector(Bottom_3d_triangle)
                 layouts = layouts + Bottom_layout
         for h in range(len(point_3d_hulls[l])):
-            Bottom_3d_hulls, Bottom_3d_triangle = generate_3d_contour(point_3d_hulls[l][h],  bottom_height+1, bottom_height, 0, max_size, "Both")
+            Bottom_3d_hulls, Bottom_3d_triangle = generate_3d_contour(point_3d_hulls[l][h], bottom_height + 1,
+                                                                      bottom_height, 0, max_size, "Both")
             Bottom_layout.vertices = open3d.utility.Vector3dVector(Bottom_3d_hulls)
             Bottom_layout.triangles = open3d.utility.Vector3iVector(Bottom_3d_triangle)
             layouts = layouts + Bottom_layout
@@ -338,7 +349,8 @@ if __name__ == "__main__":
         # # # 2. generate the 3D layout wall
         for n in range(len(point_3d_hulls[l])):
             point_hull = np.squeeze(point_3d_hulls[l][n]).astype(int)
-            wall_hulls, wall_triangles = generate_wall(point_hull, 0, bottom_height, height, contour_point_hull, wall_thickness=wall_thick)
+            wall_hulls, wall_triangles = generate_wall(point_hull, 0, bottom_height, height, contour_point_hull,
+                                                       wall_thickness=wall_thick)
             wall = open3d.geometry.TriangleMesh()
             if wall_hulls is not None:
                 wall.vertices = open3d.utility.Vector3dVector(wall_hulls)
@@ -354,7 +366,7 @@ if __name__ == "__main__":
         lines_pcd.colors = open3d.utility.Vector3dVector(colors)
         lines.append(lines_pcd)
     axis_pcd = open3d.geometry.TriangleMesh.create_coordinate_frame(size=0.5, origin=[0, 0, 0])
-    layouts = layouts #+ axis_pcd
+    layouts = layouts  # + axis_pcd
     layouts = layouts.remove_duplicated_vertices()
     layouts = layouts.remove_duplicated_triangles()
     # layouts = layouts.subdivide_midpoint(number_of_iterations=1)
@@ -365,4 +377,4 @@ if __name__ == "__main__":
     # experiment_path = "/Users/ball/Public/Code/Project/Layout/Layout_bbox_gcn/multiLayerLayout/experiment_result/{}".format(data_dir)
     # save_mesh_path = os.path.join(experiment_path, save_name)
     # open3d.io.write_triangle_mesh(save_mesh_path, layouts)
-    open3d.visualization.draw_geometries([layouts]+lines, mesh_show_back_face=True)
+    open3d.visualization.draw_geometries([layouts] + lines, mesh_show_back_face=True)

@@ -53,6 +53,12 @@ plt.plot(self.testing_epoch, [error.cpu().detach().numpy() for error in self.tes
          linewidth=1, label="testing")
 ```
 
+7. output folder not found
+
+```python
+output_dir = 'output_bbox_gcn/%s_%s_%s'
+```
+
 # B. Layout generation
 
 1. ValueError: Object arrays cannot be loaded when allow_pickle=False
