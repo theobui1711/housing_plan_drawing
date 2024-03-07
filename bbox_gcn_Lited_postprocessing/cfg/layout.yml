@@ -11,18 +11,18 @@ TREE:
 TRAIN:
     FLAG: True # True
     GRAPH_PRE_NET: ''
-    GCN: ''
-    BOX_NET: ''
+    GCN: 'content/housing_plan_drawing/bbox_gcn_Lited_postprocessing/output_bbox_gcn/box_net_best.pth'
+    BOX_NET: 'content/housing_plan_drawing/bbox_gcn_Lited_postprocessing/output_bbox_gcn/gcn_best.pth'
     BATCH_SIZE: 256
     MAX_EPOCH: 500
-    SNAPSHOT_INTERVAL: 1
-    CHECK_POINT_INTERVAL: 10
+    SNAPSHOT_INTERVAL: 10
+    CHECK_POINT_INTERVAL: 50
     USE_SIZE_AS_INPUT: True
     COEFF:
       BBOX_LOSS: 200.0 #100
 
 EVAL:
-    OUTPUT_DIR: '../output_bbox_gcn/layout_3stages_2020_03_07_11_53_57'
+    OUTPUT_DIR: ''
     GRAPH_PRE_NET: 'graph_prediction_net_best.pth'
     GCN: 'gcn_best.pth'
     BOX_NET: 'box_net_best.pth'
