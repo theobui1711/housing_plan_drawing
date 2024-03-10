@@ -56,9 +56,9 @@ class RegionProcessor():
                 lines.append([min_x, max_y, max_x, max_y])
                 lines.append([max_x, min_y, max_x, max_y])
                 lines.append([min_x, min_y, min_x, max_y])
-                width = (max_x - min_x + 1)/2.0
-                height = (max_y - min_y + 1)/2.0
-                location = [(min_x + max_x)/2.0, (min_y + max_y)/2.0]
+                width = (max_x - min_x + 1) / 2.0
+                height = (max_y - min_y + 1) / 2.0
+                location = [(min_x + max_x) / 2.0, (min_y + max_y) / 2.0]
                 processed_room = {'location': location, 'width': width, 'height': height}
                 processed_rooms[key] = processed_room
         return lines, processed_rooms
@@ -228,13 +228,14 @@ class RegionProcessor():
         return decomposed_line
 
     def generate_room_polygon_relation(self, polygons, processed_rooms):
+        polygons_list = [geom for geom in polygons.geoms]
         room_polygon_relation_map = dict()  # store all the polygon of a room
         polygon_room_weight_map = dict()  # store weight of a room to a polygon
         for x in range(0, 256):  # calculate weight of every position to rooms in a 256 * 256 grid
             for y in range(0, 256):
                 point = Point(x, y)
-                for index in range(0, len(polygons)):
-                    if polygons[index].contains(point):
+                for index in range(0, len(polygons_list)):
+                    if polygons_list[index].contains(point):
                         for key in processed_rooms:
                             processed_room = processed_rooms[key]
                             weight = self.weight_function(point, processed_room['location'], processed_room['width'],
@@ -262,9 +263,9 @@ class RegionProcessor():
             if max_weight_room != 'none':
                 if max_weight_room in room_polygon_relation_map.keys():
                     room_polygon_relation = room_polygon_relation_map[max_weight_room]
-                    room_polygon_relation.append(polygons[index])
+                    room_polygon_relation.append(polygons_list[index])
                 else:
-                    room_polygon_relation = [polygons[index]]
+                    room_polygon_relation = [polygons_list[index]]
                     room_polygon_relation_map[max_weight_room] = room_polygon_relation
         return room_polygon_relation_map  # some room may not have polygons
 
@@ -285,6 +286,7 @@ class RegionProcessor():
             merged_room_polygon_relation_map[room] = merged_polygon
         return merged_room_polygon_relation_map
 
+
 def get_merge_image(lines, rooms, processor, dir_path, count):
     lines = processor.merge_lines(lines, 4, 9, 6)
     print("merge process result:")
@@ -303,10 +305,11 @@ def get_merge_image(lines, rooms, processor, dir_path, count):
         else:
             print(" zero length line warning!")
     polygons, dangles, cuts, invalids = shapely.ops.polygonize_full(shape_lines)
-    print('polygons size:' + str(len(polygons)))
-    print('dangles size:' + str(len(dangles)))
-    print('cuts size:' + str(len(cuts)))
-    print('invalids size:' + str(len(invalids)))
+    polygons_list = [geom for geom in polygons.geoms]
+    print('polygons size:' + str(len(polygons_list)))
+    print('dangles size:' + str(len([geom for geom in dangles.geoms])))
+    print('cuts size:' + str(len([geom for geom in cuts.geoms])))
+    print('invalids size:' + str(len([geom for geom in invalids.geoms])))
 
     array = np.ndarray((256, 256, 3), np.uint8)
     array[:, :, 0] = 0
@@ -323,10 +326,10 @@ def get_merge_image(lines, rooms, processor, dir_path, count):
     draw = ImageDraw.Draw(region_image)
     print('polygons result:')
     print(polygons)
-    for i in range(0, len(polygons)):
-        for j in range(0, len(polygons[i].exterior.coords)):
-            start = polygons[i].exterior.coords[j]
-            end = polygons[i].exterior.coords[(j + 1) % len(polygons[i].exterior.coords)]
+    for i in range(0, len(polygons_list)):
+        for j in range(0, len(polygons_list[i].exterior.coords)):
+            start = polygons_list[i].exterior.coords[j]
+            end = polygons_list[i].exterior.coords[(j + 1) % len(polygons_list[i].exterior.coords)]
             draw.line([start[0], start[1], end[0], end[1]], 'cyan')
     # region_image.show()
     # Image.Image.save(region_image, "region_image.jpg")
@@ -365,6 +368,7 @@ if __name__ == '__main__':
     json_dir = "/home/zhoujiaqiu/Code/GAN/output_bbox_gcn/layout_3stages_2020_03_15_22_46_56/Text_eval_gt/count_000000001.json"
     # json_dir = "/Users/ball/Document/smil/chenqi-CVPR拓展/Code/ours_bbox_gcn_Lited/count_000000001.json"
     from io import open
+
     f = open(json_dir, encoding="utf-8")
     input_json = json.load(f)
     processor = RegionProcessor(input_json)
