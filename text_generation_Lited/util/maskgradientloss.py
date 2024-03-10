@@ -1,21 +1,25 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.utils.hooks as hooks
+
+
+# import torch.utils.hooks as hooks
 # import visdom 
-from PIL import Image
-import torchvision.transforms as transforms
+# from PIL import Image
+# import torchvision.transforms as transforms
+
 
 class MaskedGradient(nn.Module):
     """docstring for MaskedGradient"""
+
     def __init__(self, opt):
         super(MaskedGradient, self).__init__()
         self.opt = opt
         # filter of image gradient
-        self.dx = nn.Conv2d(in_channels=opt.nc, out_channels=opt.nc, \
-                            kernel_size=(1, 3), stride=1, padding=0, bias=False, groups=3)
-        self.dy = nn.Conv2d(in_channels=opt.nc, out_channels=opt.nc, \
-                            kernel_size=(3, 1), stride=1, padding=0, bias=False, groups=3)
+        self.dx = nn.Conv2d(in_channels=opt.nc, out_channels=opt.nc, kernel_size=(1, 3), stride=1, padding=0,
+                            bias=False, groups=3)
+        self.dy = nn.Conv2d(in_channels=opt.nc, out_channels=opt.nc, kernel_size=(3, 1), stride=1, padding=0,
+                            bias=False, groups=3)
 
         # stable the parameter of dx and dy
         self.dx.weight.requires_grad = False
@@ -41,7 +45,8 @@ class MaskedGradient(nn.Module):
             for j in range(self.dy.weight.size(1)):
                 self.dy.weight.data[i][j].copy_(weights_dy)
 
-    def _normalize(self, inputs):
+    @staticmethod
+    def _normalize(inputs):
         eps = 1e-5
         inputs_view = inputs.view(inputs.size(0), -1)
         min_element, _ = torch.min(inputs_view, 1)
@@ -51,7 +56,8 @@ class MaskedGradient(nn.Module):
         outputs = (inputs - min_element) / (max_element - min_element + eps)
         return outputs
 
-    def _abs_normalize(self, inputs):
+    @staticmethod
+    def _abs_normalize(inputs):
         eps = 1e-5
         inputs_view = inputs.view(inputs.size(0), -1)
         f_norm = torch.norm(inputs_view, 2, 1)
@@ -59,11 +65,13 @@ class MaskedGradient(nn.Module):
         outputs = inputs / (f_norm + eps)
         return outputs
 
-    def _combine_gradient_xy(self, gradient_x, gradient_y):
+    @staticmethod
+    def _combine_gradient_xy(gradient_x, gradient_y):
         eps = 1e-4
         return torch.sqrt(torch.pow(gradient_x, 2) + torch.pow(gradient_y, 2) + eps)
 
-    def _padding_gradient(self, gradient_x, gradient_y):
+    @staticmethod
+    def _padding_gradient(gradient_x, gradient_y):
         # padding with 0 to ensure the same size of the masks and images
         output_x = F.pad(gradient_x, (1, 1, 0, 0), "constant", 0)
         output_y = F.pad(gradient_y, (0, 0, 1, 1), "constant", 0)
@@ -73,7 +81,7 @@ class MaskedGradient(nn.Module):
         # # input gradient
         inputs_grad_x = self.dx(inputs)
         inputs_grad_y = self.dy(inputs)
-        
+
         # target gradient
         targets_grad_x = self.dx(targets.detach())
         targets_grad_y = self.dy(targets.detach())
@@ -81,7 +89,7 @@ class MaskedGradient(nn.Module):
         # padding with 0 to ensure the same size of the masks and images
         inputs_grad_x, inputs_grad_y = self._padding_gradient(inputs_grad_x, inputs_grad_y)
         targets_grad_x, targets_grad_y = self._padding_gradient(targets_grad_x, targets_grad_y)
-        
+
         inputs_grad = self._combine_gradient_xy(inputs_grad_x, inputs_grad_y)
         targets_grad = self._combine_gradient_xy(targets_grad_x, targets_grad_y)
 
@@ -90,7 +98,7 @@ class MaskedGradient(nn.Module):
         targets_mask = targets_grad
         # P = mask**self.gamma
         grad_loss = self.criterion(inputs_grad, targets_mask.detach())
-        
+
         loss = grad_loss * 1
 
         return loss, inputs_grad, targets_mask
