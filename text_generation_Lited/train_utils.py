@@ -19,7 +19,7 @@ def train(opt, dataloader, dataloader_test, device, netD, netG, desc, Noise, opt
     [NZ, noise, fixnoise] = Noise
     for epoch in range(opt.niter):
         # average for each epoch
-        errD_real_material_avg, errD_real_color_avg, errD_fake_material_avg, errD_fake_color_avg\
+        errD_real_material_avg, errD_real_color_avg, errD_fake_material_avg, errD_fake_color_avg \
             = 0.0, 0.0, 0.0, 0.0
         errG_material_avg, errG_color_avg, counter = 0.0, 0.0, 0
         real_label = 1
@@ -132,7 +132,7 @@ def train(opt, dataloader, dataloader_test, device, netD, netG, desc, Noise, opt
                   % (epoch, opt.niter, i, len(dataloader), D_x, D_G_z1, D_G_z2, time.time() - t0))
 
             ### RUN INFERENCE AND SAVE LARGE OUTPUT MOSAICS
-            if epoch % 1000 == 0:
+            if epoch % 1000 == 0 and epoch > 0:
                 vutils.save_image(texture, '%s/%s/real_textures_%03d_%s.jpg' % (opt.outputFolder, 'train', epoch, desc),
                                   normalize=True)
                 vutils.save_image(fake,
@@ -190,7 +190,7 @@ def train(opt, dataloader, dataloader_test, device, netD, netG, desc, Noise, opt
                     with open('%s/%s/description_%03d_%s.json' % (opt.outputFolder, 'eval', epoch, desc), 'w') as f:
                         json.dump(description_eval_dict, f)
                     break
-        if epoch % 200 == 0:
+        if epoch % 200 == 0 and epoch > 0:
             # save model
             save_model(netG, epoch, opt.outputFolder, 'netG')
             save_model(netD, epoch, opt.outputFolder, 'netD')
@@ -347,7 +347,7 @@ def all_composition(opt, device, netG, Noise):
 
                 noise = setNoise(noise)
                 noise = noise.to(device)
-                noise = noise[torch.arange(noise.size(0))==0]
+                noise = noise[torch.arange(noise.size(0)) == 0]
                 emb = emb.unsqueeze(0)
                 emb = emb.to(device)
                 netG.eval()
