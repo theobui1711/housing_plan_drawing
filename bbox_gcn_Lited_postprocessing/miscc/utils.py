@@ -47,7 +47,7 @@ def bbox_iou(boxes1, boxes2):
         inter_rect_y2 = torch.min(b1_y2, b2_y2)
         # Intersection area
         inter_area = torch.clamp(inter_rect_x2 - inter_rect_x1 + 1, min=0) * \
-                        torch.clamp(inter_rect_y2 - inter_rect_y1 + 1, min=0)
+                     torch.clamp(inter_rect_y2 - inter_rect_y1 + 1, min=0)
         # Union Area
         b1_area = (b1_x2 - b1_x1 + 1) * (b1_y2 - b1_y1 + 1)
         b2_area = (b2_x2 - b2_x1 + 1) * (b2_y2 - b2_y1 + 1)
@@ -58,49 +58,44 @@ def bbox_iou(boxes1, boxes2):
 
 
 def bbox_refiner(boxes):
-	threshold = 0.015
-	num_boxes = boxes.size(0)
-	for i in range(num_boxes):
-		for j in range(num_boxes):
-			# x_min
-			if abs((boxes[i][0]-boxes[j][0]).item()) < threshold:
-				boxes[i][0] = boxes[j][0]
-				# boxes[i][0] -= (boxes[i][0]-boxes[j][0])
-				# boxes[i][2] -= (boxes[i][0]-boxes[j][0])
-			elif abs((boxes[i][0]-boxes[j][2]).item()) < threshold:
-				boxes[i][0] = boxes[j][2]
-				# boxes[i][0] -= (boxes[i][0]-boxes[j][2])
-				# boxes[i][2] -= (boxes[i][0]-boxes[j][2])
-			# y_min
-			if abs((boxes[i][1]-boxes[j][1]).item()) < threshold:
-				boxes[i][1] = boxes[j][1]
-				# boxes[i][1] -= (boxes[i][1]-boxes[j][1])
-				# boxes[i][3] -= (boxes[i][1]-boxes[j][1])
-			elif abs((boxes[i][1]-boxes[j][3]).item()) < threshold:
-				boxes[i][1] = boxes[j][3]
-				# boxes[i][1] -= (boxes[i][1]-boxes[j][3])
-				# boxes[i][3] -= (boxes[i][1]-boxes[j][3])
-			# x_max
-			if abs((boxes[i][2]-boxes[j][0]).item()) < threshold:
-				boxes[i][2] = boxes[j][0]
-				# boxes[i][0] -= (boxes[i][2]-boxes[j][0])
-				# boxes[i][2] -= (boxes[i][2]-boxes[j][0])
-			elif abs((boxes[i][2]-boxes[j][2]).item()) < threshold:
-				boxes[i][2] = boxes[j][2]
-				# boxes[i][0] -= (boxes[i][2]-boxes[j][2])
-				# boxes[i][2] -= (boxes[i][2]-boxes[j][2])
-			# y_max
-			if abs((boxes[i][3]-boxes[j][1]).item()) < threshold:
-				boxes[i][3] = boxes[j][1]
-				# boxes[i][1] -= (boxes[i][3]-boxes[j][1])
-				# boxes[i][3] -= (boxes[i][3]-boxes[j][1])
-			elif abs((boxes[i][3]-boxes[j][3]).item()) < threshold:
-				boxes[i][3] = boxes[j][3]
-				# boxes[i][1] -= (boxes[i][3]-boxes[j][3])
-				# boxes[i][3] -= (boxes[i][3]-boxes[j][3])
-	return boxes
-
-
-
-
-
+    threshold = 0.015
+    num_boxes = boxes.size(0)
+    for i in range(num_boxes):
+        for j in range(num_boxes):
+            # x_min
+            if abs((boxes[i][0] - boxes[j][0]).item()) < threshold:
+                boxes[i][0] = boxes[j][0]
+            # boxes[i][0] -= (boxes[i][0]-boxes[j][0])
+            # boxes[i][2] -= (boxes[i][0]-boxes[j][0])
+            elif abs((boxes[i][0] - boxes[j][2]).item()) < threshold:
+                boxes[i][0] = boxes[j][2]
+            # boxes[i][0] -= (boxes[i][0]-boxes[j][2])
+            # boxes[i][2] -= (boxes[i][0]-boxes[j][2])
+            # y_min
+            if abs((boxes[i][1] - boxes[j][1]).item()) < threshold:
+                boxes[i][1] = boxes[j][1]
+            # boxes[i][1] -= (boxes[i][1]-boxes[j][1])
+            # boxes[i][3] -= (boxes[i][1]-boxes[j][1])
+            elif abs((boxes[i][1] - boxes[j][3]).item()) < threshold:
+                boxes[i][1] = boxes[j][3]
+            # boxes[i][1] -= (boxes[i][1]-boxes[j][3])
+            # boxes[i][3] -= (boxes[i][1]-boxes[j][3])
+            # x_max
+            if abs((boxes[i][2] - boxes[j][0]).item()) < threshold:
+                boxes[i][2] = boxes[j][0]
+            # boxes[i][0] -= (boxes[i][2]-boxes[j][0])
+            # boxes[i][2] -= (boxes[i][2]-boxes[j][0])
+            elif abs((boxes[i][2] - boxes[j][2]).item()) < threshold:
+                boxes[i][2] = boxes[j][2]
+            # boxes[i][0] -= (boxes[i][2]-boxes[j][2])
+            # boxes[i][2] -= (boxes[i][2]-boxes[j][2])
+            # y_max
+            if abs((boxes[i][3] - boxes[j][1]).item()) < threshold:
+                boxes[i][3] = boxes[j][1]
+            # boxes[i][1] -= (boxes[i][3]-boxes[j][1])
+            # boxes[i][3] -= (boxes[i][3]-boxes[j][1])
+            elif abs((boxes[i][3] - boxes[j][3]).item()) < threshold:
+                boxes[i][3] = boxes[j][3]
+            # boxes[i][1] -= (boxes[i][3]-boxes[j][3])
+            # boxes[i][3] -= (boxes[i][3]-boxes[j][3])
+    return boxes

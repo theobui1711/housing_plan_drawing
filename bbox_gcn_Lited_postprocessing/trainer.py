@@ -6,6 +6,7 @@ import torch
 import json
 import torch.nn as nn
 import torch.optim as optim
+from torch.cuda.amp import autocast, GradScaler
 import matplotlib.pyplot as plt
 import torch.backends.cudnn as cudnn
 from six.moves import range
@@ -270,6 +271,13 @@ class LayoutTrainer(object):
             # model
             self.gcn.to(self.device)
             self.box_net.to(self.device)
+
+        # Increase the batch size
+        self.batch_size *= 2
+
+        # Initialize the gradient scaler for mixed precision training
+        scaler = GradScaler()
+
         predictions = []
         start_epoch = 0
         for epoch in range(start_epoch, self.max_epoch):
@@ -297,9 +305,20 @@ class LayoutTrainer(object):
                         err_bbox += self.criterion_bbox(boxes_pred, self.real_box[i][0])
                 err_bbox = err_bbox / len(self.real_box)
                 err_total = cfg.TRAIN.COEFF.BBOX_LOSS * err_bbox
+
+                # Use the scaler to scale the loss and perform the backward pass in mixed precision
+                scaler.scale(err_total).backward()
+
+                # Use the scaler to unscale the gradients and update the weights
+                scaler.step(self.optimizer_gcn)
+                scaler.step(self.optimizer_bbox)
+
+                # Update the scale for next iteration
+                scaler.update()
+
                 self.optimizer_gcn.zero_grad()
                 self.optimizer_bbox.zero_grad()
-                err_total.backward()
+                # err_total.backward()
                 self.optimizer_gcn.step()
                 self.optimizer_bbox.step()
 

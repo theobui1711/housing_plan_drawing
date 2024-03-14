@@ -5,7 +5,6 @@ import os.path as osp
 import numpy as np
 from easydict import EasyDict as edict
 
-
 __C = edict()
 cfg = __C
 
@@ -21,12 +20,10 @@ __C.TREE = edict()
 __C.TREE.BRANCH_NUM = 3
 __C.TREE.BASE_SIZE = 64
 
-
 # Test options
 __C.TEST = edict()
 __C.TEST.B_EXAMPLE = True
 __C.TEST.SAMPLE_NUM = 30000
-
 
 # Training options
 __C.TRAIN = edict()
@@ -73,15 +70,15 @@ __C.FIXED_NOISE = False
 __C.USE_NOISE = True
 
 __C.GRAPH = edict()
-__C.GRAPH.LR = 2e-4 # 0.01
+__C.GRAPH.LR = 2e-4  # 0.01
 __C.GRAPH.WEIGHT_DECAY = 0.0  # 5e-4
 
 __C.GCN = edict()
-__C.GCN.LR = 2e-4 # 0.01
+__C.GCN.LR = 2e-4  # 0.01
 __C.GCN.WEIGHT_DECAY = 0.0  # 5e-4
 
 __C.BBOX = edict()
-__C.BBOX.LR = 2e-4 # 0.01
+__C.BBOX.LR = 2e-4  # 0.01
 __C.BBOX.WEIGHT_DECAY = 0.0  # 5e-4
 
 
