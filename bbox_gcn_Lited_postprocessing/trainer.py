@@ -238,7 +238,7 @@ class LayoutTrainer(object):
         box_net_dim = 4
         mlp_normalization = 'none'
         box_net_layers = [gconv_dim, gconv_hidden_dim, box_net_dim]
-        box_net = BBOX_NET(box_net_layers, batch_norm=mlp_normalization)
+        box_net = BBOX_NET(box_net_layers, batch_norm=mlp_normalization, dropout=.2)
         return gcn, box_net
 
     def train(self):

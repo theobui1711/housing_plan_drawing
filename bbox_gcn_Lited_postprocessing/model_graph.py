@@ -1,10 +1,24 @@
 import math
 import torch
+from torch import Tensor
 from torch.nn.parameter import Parameter
 from torch.nn.modules.module import Module
 import torch.nn as nn
 import torch.nn.functional as F
 from miscc.config import cfg
+from torch_geometric.nn import GCNConv
+
+
+class GCN(nn.Module):
+    def __init__(self, num_features, hidden_chennels, output_dim):
+        super(GCN, self).__init__()
+        self.conv1 = GCNConv(num_features, hidden_chennels)
+        self.conv2 = GCNConv(hidden_chennels, output_dim)
+
+    def forward(self, x: Tensor, edge_index: Tensor) -> Tensor:
+        x = self.conv1(x, edge_index).relu()
+        x = self.conv2(x, edge_index)
+        return x
 
 
 class GCN(nn.Module):
@@ -15,6 +29,7 @@ class GCN(nn.Module):
 
     def forward(self, x, adj):
         x = F.relu(self.gc1(x, adj))
+        # x = self.dropout(x)
         x = self.gc2(x, adj)
         return x
 
@@ -23,6 +38,7 @@ class GraphConvolution(Module):
     """
     Simple GCN layer, similar to https://arxiv.org/abs/1609.02907
     """
+
     def __init__(self, in_features, out_features, bias=True):
         super(GraphConvolution, self).__init__()
         self.in_features = in_features
@@ -58,36 +74,37 @@ class GraphConvolution(Module):
 
     def __repr__(self):
         return self.__class__.__name__ + ' (' \
-               + str(self.in_features) + ' -> ' \
-               + str(self.out_features) + ')'
+            + str(self.in_features) + ' -> ' \
+            + str(self.out_features) + ')'
 
 
 class BBOX_NET(nn.Module):
     def __init__(self, dim_list, activation='relu', batch_norm='none',
-                  dropout=0, final_nonlinearity=True):
+                 dropout=0, final_nonlinearity=True):
         super(BBOX_NET, self).__init__()
 
-        self.mlp = self.build_mlp(dim_list=dim_list, 
-            activation=activation, batch_norm=batch_norm,
-            dropout=dropout, final_nonlinearity=final_nonlinearity)
+        self.mlp = self.build_mlp(dim_list=dim_list,
+                                  activation=activation, batch_norm=batch_norm,
+                                  dropout=dropout, final_nonlinearity=final_nonlinearity)
 
-    def build_mlp(self, dim_list, activation='relu', batch_norm='none',
+    @staticmethod
+    def build_mlp(dim_list, activation='relu', batch_norm='none',
                   dropout=0, final_nonlinearity=True):
-      layers = []
-      for i in range(len(dim_list) - 1):
-        dim_in, dim_out = dim_list[i], dim_list[i + 1]
-        layers.append(nn.Linear(dim_in, dim_out))
-        final_layer = (i == len(dim_list) - 2)
-        if not final_layer or final_nonlinearity:
-          if batch_norm == 'batch':
-            layers.append(nn.BatchNorm1d(dim_out))
-          if activation == 'relu':
-            layers.append(nn.ReLU())
-          elif activation == 'leakyrelu':
-            layers.append(nn.LeakyReLU())
-        if dropout > 0:
-          layers.append(nn.Dropout(p=dropout))
-      return nn.Sequential(*layers)
+        layers = []
+        for i in range(len(dim_list) - 1):
+            dim_in, dim_out = dim_list[i], dim_list[i + 1]
+            layers.append(nn.Linear(dim_in, dim_out))
+            final_layer = (i == len(dim_list) - 2)
+            if not final_layer or final_nonlinearity:
+                if batch_norm == 'batch':
+                    layers.append(nn.BatchNorm1d(dim_out))
+                if activation == 'relu':
+                    layers.append(nn.ReLU())
+                elif activation == 'leakyrelu':
+                    layers.append(nn.LeakyReLU())
+            if dropout > 0:
+                layers.append(nn.Dropout(p=dropout))
+        return nn.Sequential(*layers)
 
     if cfg.TRAIN.USE_GCN:
         def forward(self, objs_vector, graph_objs_vector):
@@ -100,22 +117,20 @@ class BBOX_NET(nn.Module):
             output = self.mlp(objs_vector)
             return output
 
-
-def build_mlp(dim_list, activation='relu', batch_norm='none',
-              dropout=0, final_nonlinearity=True):
-    layers = []
-    for i in range(len(dim_list) - 1):
-        dim_in, dim_out = dim_list[i], dim_list[i + 1]
-        layers.append(nn.Linear(dim_in, dim_out))
-        final_layer = (i == len(dim_list) - 2)
-        if not final_layer or final_nonlinearity:
-          if batch_norm == 'batch':
-            layers.append(nn.BatchNorm1d(dim_out))
-          if activation == 'relu':
-            layers.append(nn.ReLU())
-          elif activation == 'leakyrelu':
-            layers.append(nn.LeakyReLU())
-        if dropout > 0:
-            layers.append(nn.Dropout(p=dropout))
-    return nn.Sequential(*layers)
-
+# def build_mlp(dim_list, activation='relu', batch_norm='none',
+#               dropout=0, final_nonlinearity=True):
+#     layers = []
+#     for i in range(len(dim_list) - 1):
+#         dim_in, dim_out = dim_list[i], dim_list[i + 1]
+#         layers.append(nn.Linear(dim_in, dim_out))
+#         final_layer = (i == len(dim_list) - 2)
+#         if not final_layer or final_nonlinearity:
+#             if batch_norm == 'batch':
+#                 layers.append(nn.BatchNorm1d(dim_out))
+#             if activation == 'relu':
+#                 layers.append(nn.ReLU())
+#             elif activation == 'leakyrelu':
+#                 layers.append(nn.LeakyReLU())
+#         if dropout > 0:
+#             layers.append(nn.Dropout(p=dropout))
+#     return nn.Sequential(*layers)
