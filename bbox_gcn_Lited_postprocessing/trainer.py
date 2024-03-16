@@ -230,15 +230,16 @@ class LayoutTrainer(object):
         input_graph_dim = objs_vector_dim
         hidden_graph_dim = 64
         output_graph_dim = objs_vector_dim
-        gcn = GCN(nfeat=input_graph_dim,
-                  nhid=hidden_graph_dim, output_dim=output_graph_dim)
+        gcn = GCN(num_features=input_graph_dim,
+                  hidden_channels=hidden_graph_dim,
+                  output_dim=output_graph_dim)
         # build box_net model
         gconv_dim = objs_vector_dim
         gconv_hidden_dim = 512
         box_net_dim = 4
         mlp_normalization = 'none'
         box_net_layers = [gconv_dim, gconv_hidden_dim, box_net_dim]
-        box_net = BBOX_NET(box_net_layers, batch_norm=mlp_normalization, dropout=.2)
+        box_net = BBOX_NET(box_net_layers, batch_norm=mlp_normalization)
         return gcn, box_net
 
     def train(self):

@@ -4,31 +4,18 @@ from torch import Tensor
 from torch.nn.parameter import Parameter
 from torch.nn.modules.module import Module
 import torch.nn as nn
-import torch.nn.functional as F
+# import torch.nn.functional as F
 from miscc.config import cfg
-from torch_geometric.nn import GCNConv
 
 
 class GCN(nn.Module):
-    def __init__(self, num_features, hidden_chennels, output_dim):
+    def __init__(self, num_features, hidden_channels, output_dim):
         super(GCN, self).__init__()
-        self.conv1 = GCNConv(num_features, hidden_chennels)
-        self.conv2 = GCNConv(hidden_chennels, output_dim)
-
-    def forward(self, x: Tensor, edge_index: Tensor) -> Tensor:
-        x = self.conv1(x, edge_index).relu()
-        x = self.conv2(x, edge_index)
-        return x
-
-
-class GCN(nn.Module):
-    def __init__(self, nfeat, nhid, output_dim):
-        super(GCN, self).__init__()
-        self.gc1 = GraphConvolution(nfeat, nhid)
-        self.gc2 = GraphConvolution(nhid, output_dim)
+        self.gc1 = GraphConvolution(num_features, hidden_channels)
+        self.gc2 = GraphConvolution(hidden_channels, output_dim)
 
     def forward(self, x, adj):
-        x = F.relu(self.gc1(x, adj))
+        x = self.gc1(x, adj).relu()
         # x = self.dropout(x)
         x = self.gc2(x, adj)
         return x
