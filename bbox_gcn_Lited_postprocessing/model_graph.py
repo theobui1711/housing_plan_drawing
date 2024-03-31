@@ -30,12 +30,12 @@ class GraphConvolution(Module):
         super(GraphConvolution, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
-        if cfg.CUDA:
+        if cfg.CUDA and torch.cuda.is_available():
             self.weight = Parameter(torch.cuda.FloatTensor(in_features, out_features))
         else:
             self.weight = Parameter(torch.FloatTensor(in_features, out_features))
         if bias:
-            if cfg.CUDA:
+            if cfg.CUDA and torch.cuda.is_available():
                 self.bias = Parameter(torch.cuda.FloatTensor(out_features))
             else:
                 self.bias = Parameter(torch.FloatTensor(out_features))

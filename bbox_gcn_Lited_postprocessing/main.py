@@ -10,6 +10,7 @@ import dateutil.tz
 import torch
 import torchvision.transforms as transforms
 from miscc.config import cfg, cfg_from_file
+
 # config environment
 dir_path = (os.path.abspath(os.path.join(os.path.realpath(__file__), './.')))
 sys.path.append(dir_path)
@@ -34,7 +35,11 @@ if __name__ == "__main__":
         cfg_from_file(args.cfg_file)
     if args.data_dir != '':
         cfg.DATA_DIR = args.data_dir
-    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+    if args.gpu:
+        os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+    else:
+        args.CUDA = False
+
     print('Using config:')
     pprint.pprint(cfg)
 
@@ -53,17 +58,18 @@ if __name__ == "__main__":
         now = datetime.datetime.now(dateutil.tz.tzlocal())
         timestamp = now.strftime('%Y_%m_%d_%H_%M_%S')
         output_dir = 'output_bbox_gcn/%s_%s_%s' % \
-            (cfg.DATASET_NAME, cfg.CONFIG_NAME, timestamp)
+                     (cfg.DATASET_NAME, cfg.CONFIG_NAME, timestamp)
     else:
         output_dir = '{}'.format(cfg.EVAL.OUTPUT_DIR)
 
     # Get data loader
-    imsize = cfg.TREE.BASE_SIZE * (2 ** (cfg.TREE.BRANCH_NUM-1))
+    imsize = cfg.TREE.BASE_SIZE * (2 ** (cfg.TREE.BRANCH_NUM - 1))
     image_transform = transforms.Compose([
-                                         ])
+    ])
     num_gpu = len(cfg.GPU_ID.split(','))
     if cfg.TRAIN.FLAG:
         from datasets import TextDataset
+
         dataset_train = TextDataset(cfg.DATA_DIR, base_size=cfg.TREE.BASE_SIZE,
                                     transform=image_transform, train_set=True)
         dataset_test = TextDataset(cfg.DATA_DIR, base_size=cfg.TREE.BASE_SIZE,
@@ -80,6 +86,7 @@ if __name__ == "__main__":
             num_workers=int(cfg.WORKERS))
     else:
         from datasets import TextDataset
+
         dataset_test = TextDataset(cfg.DATA_DIR, base_size=cfg.TREE.BASE_SIZE,
                                    transform=image_transform, train_set=False)
         assert dataset_test
@@ -90,10 +97,12 @@ if __name__ == "__main__":
 
     # Define models and go to train/evaluate
     from trainer import LayoutTrainer as trainer
+
     if cfg.TRAIN.FLAG:
         algo = trainer(output_dir, dataloader_train, imsize, dataloader_test)
     else:
         algo = trainer(output_dir, None, imsize, dataloader_test)
+
     start_t = time.time()
     if cfg.TRAIN.FLAG:
         algo.train()

@@ -166,7 +166,8 @@ class LayoutTrainer(object):
         s_gpus = cfg.GPU_ID.split(',')
         self.gpus = [int(ix) for ix in s_gpus]
         self.num_gpus = len(self.gpus)
-        self.device = torch.device('cuda:{}'.format(self.gpus[0]) if self.num_gpus > 0 else 'cpu')
+        # self.device = torch.device('cuda:{}'.format(self.gpus[0]) if self.num_gpus > 0 else 'cpu')
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         cudnn.benchmark = True
 
         if cfg.TRAIN.FLAG:
@@ -221,7 +222,8 @@ class LayoutTrainer(object):
                 test_vobjs_vector.append((objs_vector[i][0].to(self.device), objs_vector[i][1].to(self.device)))
         return label_imgs, test_vgraph, test_vbbox, test_vobjs_vector, key
 
-    def define_models(self):
+    @staticmethod
+    def define_models():
         if cfg.TRAIN.USE_SIZE_AS_INPUT:
             objs_vector_dim = 19
         else:
@@ -428,13 +430,13 @@ class LayoutTrainer(object):
         # load gcn
         if cfg.EVAL.GCN != '':
             self.gcn.load_state_dict(
-                torch.load(os.path.join(cfg.EVAL.OUTPUT_DIR, 'Model',
-                                        cfg.EVAL.GCN)))
+                torch.load(os.path.join(cfg.EVAL.OUTPUT_DIR, 'Model', cfg.EVAL.GCN), map_location=self.device))
+
         # load box_net
         if cfg.EVAL.BOX_NET != '':
             self.box_net.load_state_dict(
-                torch.load(os.path.join(cfg.EVAL.OUTPUT_DIR, 'Model',
-                                        cfg.EVAL.BOX_NET)))
+                torch.load(os.path.join(cfg.EVAL.OUTPUT_DIR, 'Model', cfg.EVAL.BOX_NET), map_location=self.device))
+
         if cfg.CUDA:
             self.gcn.to(self.device)
             self.box_net.to(self.device)

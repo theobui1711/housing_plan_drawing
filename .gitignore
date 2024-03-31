@@ -145,3 +145,5 @@ dmypy.json
 */results/
 MultiLayerDataset/
 LayoutGenerator_Lited/MultiLayerDataset/
+bbox_gcn_Lited_postprocessing/housing_plan_drawing_data/
+housing_plan_drawing_data

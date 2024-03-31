@@ -110,12 +110,13 @@ class TextDataset(data.Dataset):
             filepath = os.path.join(data_dir, 'test_id.pickle')
             with open(filepath, 'rb') as f:
                 test_id = pickle.load(f, encoding='latin1')
-            test_id = sorted(test_id)
+            test_id = sorted(test_id)[:10]
             # build test filenames
             self.filenames_test = []
             for idx in test_id:
                 self.filenames_test.append(self.filenames[idx])
             self.filenames_test = sorted(self.filenames_test)
+
             # load graphs
             self.graphs = self.load_graphs(data_dir, self.filenames_test)
             # load bounding boxes
